@@ -1,43 +1,40 @@
 import re
 
+
 ############## 사용되지 않는 항목, 값 삭제 #################
-# 삭제 항목 정의
-remove_keys = [
-    "요약",
-    "정책 번호",
-    "신청 사이트",
-    "사업관련 참고 사이트 1",
-    "사업관련 참고 사이트 2",
-    "첨부파일",
-]
-
-remove_values = [
-    "제한없음",
-    "",
-    "-",
-    "상관없음",
-    "□제한없음",
-    "□ 제한없음",
-    "- 제한없음",
-    "-제한없음",
-]
-
-
 # 삭제 함수 정의
-def remove_keys_from_data(data, keys):
+def remove_keys_from_data(data):
+    remove_keys = [
+        "요약",
+        "정책 번호",
+        "신청 사이트",
+        "사업관련 참고 사이트 1",
+        "사업관련 참고 사이트 2",
+        "첨부파일",
+    ]
     if isinstance(data, list):
-        return [remove_keys_from_data(item, keys) for item in data]
+        return [remove_keys_from_data(item, remove_keys) for item in data]
     elif isinstance(data, dict):
         return {
-            key: remove_keys_from_data(value, keys)
+            key: remove_keys_from_data(value, remove_keys)
             for key, value in data.items()
-            if key not in keys
+            if key not in remove_keys
         }
     else:
         return data
 
 
 def remove_values_from_data(data):
+    remove_values = [
+        "제한없음",
+        "",
+        "-",
+        "상관없음",
+        "□제한없음",
+        "□ 제한없음",
+        "- 제한없음",
+        "-제한없음",
+    ]
     if isinstance(data, list):
         return [
             remove_values_from_data(item) for item in data if item not in remove_values
