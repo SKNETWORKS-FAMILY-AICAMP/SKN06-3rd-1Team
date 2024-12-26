@@ -1,3 +1,5 @@
+import re
+
 ############## 사용되지 않는 항목, 값 삭제 #################
 # 삭제 항목 정의
 remove_keys = [
@@ -51,7 +53,32 @@ def remove_values_from_data(data):
 
 
 ######### 불용어 ###########
-######## stop words list 넣어야 함 ########
+# 불용어
+stopwords = [
+    "수행",
+    "경우",
+    "해당",
+    "통하여",
+    "대한",
+    "관련",
+    "등",
+    "및",
+    "또는",
+    "중인",
+    "통해",
+    "따라",
+    "서비스",
+    "제공",
+    "프로그램",
+    "참여",
+    "따른",
+    "관한",
+    "이용",
+    "등을",
+    "두고",
+]
+
+
 # 제거 함수
 def remove_text(text):
     if isinstance(text, str):
@@ -67,6 +94,18 @@ def remove_text(text):
         return text
 
     return text
+
+
+# 데이터 처리
+def process_json(data):
+    if isinstance(data, dict):
+        return {key: process_json(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [process_json(item) for item in data]
+    elif isinstance(data, str):
+        return remove_text(data)
+    else:
+        return data
 
 
 ######### 토큰화 ##############
