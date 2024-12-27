@@ -98,9 +98,74 @@
 
   
 ## <br> **03. RAG 시스템 개발**
-- Vector Store 생성/로드 + 저장
-- Retriever 설정
-- 
+### **디렉토리 설정**
+1) 경로 설정:  text-embedding-ada-002
+   고품질 임베딩을 생성하기 위해 해당 임베딩 모델을 선택함
+
+2) JSON 데이터 불러오기
+   - 개별 정책 text를 통합하여 metadata와 함께 JSON 문서를 생성
+  
+### **Retriever 설정**
+
+    retriever = vector_store.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": 5,
+            "fetch_k": 10,
+            "lambda_mult": 0.2,
+        },
+    )
+        
+### **DB 기반 검색 도구, Web 기반 검색 도구 생성**
+- 데이터에 빠르게 접근하고, 최신 외부 정보를 검색할 수 있도록 tool 생성
+
+        # db 검색 tool
+        @tool
+        def search_policy(query: str) -> list[Document]:
+            """
+            Vector Store에 저장된 청년 지원 정책과 해당 정책의 정보를 검색한다.
+            이 도구는 청년 지원 정책 관련 질문에 대해 실행한다.
+            """
+            result = retriever.invoke(query)
+            return result if result else [Document(page_content="검색 결과가 없습니다.")]
+        
+        
+        # web 검색 tool
+        @tool
+        def search_web(query: str) -> list[Document]:
+            """
+            Web에서 청년 지원 정책과 해당 정책의 정보를 검색한다.
+            이 도구는 청년 지원 정책 관련 질문에 대해 실행한다.
+            """
+            try:
+                tavily_search = TavilySearchResults(max_results=2)
+                result = tavily_search.invoke(query)
+                if result:
+                    return [
+                        Document(
+                            page_content=item.get("content", ""),
+                            metadata={"title": item.get("title", "")},
+                        )
+                        for item in result
+                    ]
+                else:
+                    return [Document(page_content="검색 결과가 없습니다.")]
+            except Exception as e:
+                return [Document(page_content=f"오류 발생: {str(e)}")]
+  
+
+### **Prompt 설정**
+- 주요 설정 사항
+
+        """
+        3. 답변에 불필요한 정보는 제공하지 마세요.
+        7. 질문을 완전히 이해하지 못할 경우, 구체적인 질문을 다시 받을 수 있도록 사용자에게 유도 질문을 하세요.
+        """
+
+
+### 질문-응답 프로세스
+- **사용자 질문 입력** > **검색 결과 통합** > **LLM 메세지 구성** > **최종 응답 생성 > log 저장**
+
  
 ## <br> **04. 성능 평가**
 ### **질문-답변 생성**
@@ -158,18 +223,12 @@
 
 > 고성주: 한게 너무 없네요... 팀원분들 고생 많으셨습니다~~!
 > 
-> 김지영:
+> 김지영: 좋은 성능의 시스템을 개발하는 것이 생각보다 어렵네요... 설계하는 단계를 좀 더 명확히 익히고 작동 원리를 이해해야겠다는 생각을 했습니다! 다들 고생하셨어요 ❤️
 > 
 > 이세화:
 > 
 > 정유진: 크롤링 어디까지 끌어오는거에요? 끝이 왜 없지!
 > 
-> 정지원: 다들 고생하셨습니다! 다음 프로젝트도 화이팅...!!
-
-
-
-
-
-
+> 정지원: 모델 성능 향상시키는데 꽤나 힘들었네요ㅠㅠ 다들 고생하셨습니다! 다음 프로젝트도 화이팅...!!
 
 
