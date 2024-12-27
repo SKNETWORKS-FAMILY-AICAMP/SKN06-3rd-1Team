@@ -13,10 +13,10 @@ def remove_keys_from_data(data):
         "첨부파일",
     ]
     if isinstance(data, list):
-        return [remove_keys_from_data(item, remove_keys) for item in data]
+        return [remove_keys_from_data(item) for item in data]
     elif isinstance(data, dict):
         return {
-            key: remove_keys_from_data(value, remove_keys)
+            key: remove_keys_from_data(value)
             for key, value in data.items()
             if key not in remove_keys
         }
